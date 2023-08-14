@@ -4,9 +4,31 @@ import com.github.angelmunoz.cli_options.ShowDirectoryItems
 import com.github.angelmunoz.handlers.gatherFsItems
 import com.github.angelmunoz.types.ApplicationEnvironment
 import com.github.angelmunoz.types.IFileSystem
-import com.github.angelmunoz.types.ILogger
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KLoggingEventBuilder
+import io.github.oshai.kotlinlogging.Level
+import io.github.oshai.kotlinlogging.Marker
 import picocli.CommandLine
 import kotlin.test.Test
+
+
+fun getKlogger(stdout: MutableList<String>, stderr: MutableList<String>, cls: Class<*>): KLogger {
+    return object : KLogger {
+        override val name: String
+            get() = cls.name
+
+        override fun at(level: Level, marker: Marker?, block: KLoggingEventBuilder.() -> Unit) {
+            val evb = KLoggingEventBuilder()
+            evb.block()
+            when (level) {
+                Level.ERROR -> stderr.add(evb.message.orEmpty())
+                else -> stdout.add(evb.message.orEmpty())
+            }
+        }
+
+        override fun isLoggingEnabledFor(level: Level, marker: Marker?): Boolean = true
+    }
+}
 
 /**
  * this is a factory function that provides us with a new environment with
@@ -26,16 +48,8 @@ fun makeTestEnvironment(stdout: MutableList<String>, stderr: MutableList<String>
                     return listOf("/file1", "/dir1/file1", "/dir2/file1", "/dir2/dir1/file1")
                 }
             }
-        override val logger: ILogger
-            get() = object : ILogger {
-                override fun println(message: String) {
-                    stdout.add(message)
-                }
 
-                override fun printError(message: String) {
-                    stderr.add(message)
-                }
-            }
+        override fun <TEnclosingCls> getLogger(cls: Class<TEnclosingCls>): KLogger = getKlogger(stdout, stderr, cls)
     }
 }
 
@@ -60,7 +74,7 @@ class E2ETests {
         val result = cli.execute("-p", "./")
         assert(result == 0)
         assert(stdoutSink.size == 3)
-        assert(stdoutSink[1] == "/file1")
+        assert(stdoutSink[1].contains("/file1"))
     }
 
     @Test
@@ -76,6 +90,6 @@ class E2ETests {
         val result = cli.execute("-p", "./", "-r")
         assert(result == 0)
         assert(stdoutSink.size == 4)
-        assert(stdoutSink[1] == "/dir1/file1")
+        assert(stdoutSink[1].contains("/dir1/file1"))
     }
 }
