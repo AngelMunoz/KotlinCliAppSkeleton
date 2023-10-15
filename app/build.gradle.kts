@@ -7,7 +7,7 @@
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.8.20"
+    kotlin("jvm") version "1.9.0"
     kotlin("kapt") version "1.9.0"
 
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -31,6 +31,9 @@ dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")
     // added by me
+
+    // Dependency Injection
+    implementation("org.kodein.di:kodein-di:7.19.0")
 
     // Coroutines because why not?
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
@@ -61,7 +64,7 @@ kapt {
 
 application {
     // Define the main class for the application.
-    mainClass.set("com.github.angelmunoz.AppKt")
+    mainClass.set("com.github.skeleton.AppKt")
 }
 
 tasks.named<Test>("test") {
