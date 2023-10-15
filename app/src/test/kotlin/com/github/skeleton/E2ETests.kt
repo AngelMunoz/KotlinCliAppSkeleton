@@ -1,34 +1,18 @@
-package com.github.angelmunoz
+package com.github.skeleton
 
-import com.github.angelmunoz.cli_options.ShowDirectoryItems
-import com.github.angelmunoz.handlers.gatherFsItems
-import com.github.angelmunoz.types.ApplicationEnvironment
-import com.github.angelmunoz.types.IFileSystem
+import com.github.skeleton.cli_options.ShowDirectoryItems
+import com.github.skeleton.handlers.gatherFsItems
+import com.github.skeleton.types.IFileSystem
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KLoggingEventBuilder
 import io.github.oshai.kotlinlogging.Level
 import io.github.oshai.kotlinlogging.Marker
+import org.kodein.di.DI
+import org.kodein.di.bindFactory
+import org.kodein.di.bindInstance
 import picocli.CommandLine
 import kotlin.test.Test
 
-
-fun getKlogger(stdout: MutableList<String>, stderr: MutableList<String>, cls: Class<*>): KLogger {
-    return object : KLogger {
-        override val name: String
-            get() = cls.name
-
-        override fun at(level: Level, marker: Marker?, block: KLoggingEventBuilder.() -> Unit) {
-            val evb = KLoggingEventBuilder()
-            evb.block()
-            when (level) {
-                Level.ERROR -> stderr.add(evb.message.orEmpty())
-                else -> stdout.add(evb.message.orEmpty())
-            }
-        }
-
-        override fun isLoggingEnabledFor(level: Level, marker: Marker?): Boolean = true
-    }
-}
 
 /**
  * this is a factory function that provides us with a new environment with
@@ -36,10 +20,10 @@ fun getKlogger(stdout: MutableList<String>, stderr: MutableList<String>, cls: Cl
  * side effectual operations and assert on them like reading from disk
  * or logging to the console
  */
-fun makeTestEnvironment(stdout: MutableList<String>, stderr: MutableList<String>): ApplicationEnvironment {
-    return object : ApplicationEnvironment {
-        override val fileSystem: IFileSystem
-            get() = object : IFileSystem {
+fun makeTestEnvironment(stdout: MutableList<String>, stderr: MutableList<String>): DI {
+    return DI {
+        bindInstance {
+            object : IFileSystem {
                 override fun listItems(path: String): List<String> {
                     return listOf("/dir1", "/file1", "/file2")
                 }
@@ -48,8 +32,24 @@ fun makeTestEnvironment(stdout: MutableList<String>, stderr: MutableList<String>
                     return listOf("/file1", "/dir1/file1", "/dir2/file1", "/dir2/dir1/file1")
                 }
             }
+        }
+        bindFactory<String, KLogger> {  loggerName ->
+            object : KLogger {
+                override val name: String
+                    get() = loggerName
 
-        override fun <TEnclosingCls> getLogger(cls: Class<TEnclosingCls>): KLogger = getKlogger(stdout, stderr, cls)
+                override fun at(level: Level, marker: Marker?, block: KLoggingEventBuilder.() -> Unit) {
+                    val evb = KLoggingEventBuilder()
+                    evb.block()
+                    when (level) {
+                        Level.ERROR -> stderr.add(evb.message.orEmpty())
+                        else -> stdout.add(evb.message.orEmpty())
+                    }
+                }
+
+                override fun isLoggingEnabledFor(level: Level, marker: Marker?): Boolean = true
+            }
+        }
     }
 }
 

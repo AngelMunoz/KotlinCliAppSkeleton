@@ -3,9 +3,9 @@
  * but for our purposes we'll just use functions if we ever need to use classes
  * (for stateful services) we can add them here as well
  */
-package com.github.angelmunoz.services
+package com.github.skeleton.services
 
-import com.github.angelmunoz.types.IFileSystem
+import com.github.skeleton.types.IFileSystem
 import java.io.File
 
 

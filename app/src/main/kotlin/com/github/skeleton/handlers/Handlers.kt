@@ -6,10 +6,10 @@
  * When adding new handlers, think about how will they compose together with other handlers
  * as if they were part of a pipeline, this will help us keep our handlers small and focused.
  */
-package com.github.angelmunoz.handlers
+package com.github.skeleton.handlers
 
-import com.github.angelmunoz.types.IFileSystem
-import com.github.angelmunoz.types.ShowParams
+import com.github.skeleton.types.IFileSystem
+import com.github.skeleton.types.ShowParams
 
 
 fun gatherFsItems(fs: IFileSystem, params: ShowParams): List<String> {

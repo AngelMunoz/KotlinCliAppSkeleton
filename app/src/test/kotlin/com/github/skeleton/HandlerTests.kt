@@ -1,8 +1,8 @@
-package com.github.angelmunoz
+package com.github.skeleton
 
-import com.github.angelmunoz.handlers.gatherFsItems
-import com.github.angelmunoz.types.IFileSystem
-import com.github.angelmunoz.types.ShowParams
+import com.github.skeleton.handlers.gatherFsItems
+import com.github.skeleton.types.IFileSystem
+import com.github.skeleton.types.ShowParams
 import kotlin.test.Test
 
 /**

@@ -9,13 +9,16 @@
  * they have to be implemented as class methods
  * @see <a href="https://picocli.info/#_subcommands_as_methods">picocli docs</a>
  */
-package com.github.angelmunoz.cli_options
+package com.github.skeleton.cli_options
 
-import com.github.angelmunoz.types.ApplicationEnvironment
-import com.github.angelmunoz.types.IFileSystem
-import com.github.angelmunoz.types.ShowParams
+import com.github.skeleton.types.IFileSystem
+import com.github.skeleton.types.ShowParams
+import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
+import org.kodein.di.DI
+import org.kodein.di.factory
+import org.kodein.di.instance
 import picocli.CommandLine.Option
 
 /**
@@ -23,7 +26,9 @@ import picocli.CommandLine.Option
  * @param env A DI container that has the required services of the application
  * @param action the action to perform when the command is executed
  */
-class ShowDirectoryItems(private val env: ApplicationEnvironment, private val action: suspend (IFileSystem, ShowParams) -> List<String>) : Runnable {
+class ShowDirectoryItems(private val env: DI, private val action: suspend (IFileSystem, ShowParams) -> List<String>) : Runnable {
+
+    private val getCmdLogger: (String) -> KLogger by env.factory<String, KLogger>()
 
     @Option(
         names = ["-p", "--path"], paramLabel = "Path", description = ["The path to show it's contents"]
@@ -38,9 +43,10 @@ class ShowDirectoryItems(private val env: ApplicationEnvironment, private val ac
     var recursive = false
 
     override fun run() {
-        val logger = env.getLogger(this.javaClass)
+        val fs: IFileSystem by env.instance()
+        val logger = getCmdLogger(this.javaClass.name)
         runBlocking {
-            val items = action(env.fileSystem, ShowParams(path, recursive))
+            val items = action(fs, ShowParams(path, recursive))
             for (item in items) logger.info { item }
         }
     }
